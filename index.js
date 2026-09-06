@@ -8,25 +8,54 @@
 // ERR_MODULE_NOT_FOUND when index.mjs is imported. Detect that case and run
 // the project's own compile step first, then import lazily so the compiled
 // files exist before Node tries to resolve them.
+//
+// The project's "compile" npm script invokes `rimraf build && tsc`. rimraf
+// is a devDependency, so on an environment where `npm ci`/`npm install` was
+// run with production-only deps (or node_modules is otherwise incomplete),
+// `rimraf` is not on PATH and `npm run compile` fails with "rimraf: not
+// found" (exit status 127) before tsc ever runs. Work around a missing
+// rimraf by clearing the build/ directory ourselves (plain fs, no external
+// binary) and invoking the TypeScript compiler directly instead of going
+// through the npm script.
 
-import {existsSync} from 'node:fs';
+import {existsSync, rmSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const compiledEntry = join(__dirname, 'build', 'lib', 'yargs-factory.js');
+const buildDir = join(__dirname, 'build');
+
+function runCompile() {
+  // Equivalent of the "compile" npm script (`rimraf build && tsc -p tsconfig.json`),
+  // but without depending on the rimraf binary being present on PATH.
+  rmSync(buildDir, {recursive: true, force: true});
+
+  const tscCmd = process.platform === 'win32' ? 'tsc.cmd' : 'tsc';
+  const localTsc = join(__dirname, 'node_modules', '.bin', tscCmd);
+
+  if (existsSync(localTsc)) {
+    execFileSync(localTsc, ['-p', 'tsconfig.json'], {
+      cwd: __dirname,
+      stdio: 'inherit',
+    });
+  } else {
+    // Fall back to npx in case the local binary isn't where expected.
+    execFileSync('npx', ['tsc', '-p', 'tsconfig.json'], {
+      cwd: __dirname,
+      stdio: 'inherit',
+    });
+  }
+}
 
 function ensureBuilt() {
   if (existsSync(compiledEntry)) return;
   console.log(
-    '[index.js] build/ output not found, running "npm run compile"...'
+    '[index.js] build/ output not found, compiling TypeScript sources...'
   );
   try {
-    execFileSync('npm', ['run', 'compile'], {
-      cwd: __dirname,
-      stdio: 'inherit',
-    });
+    runCompile();
   } catch (err) {
     console.error('[index.js] Failed to compile TypeScript sources:', err);
     process.exit(1);

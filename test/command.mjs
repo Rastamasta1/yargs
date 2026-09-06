@@ -303,6 +303,36 @@ describe('Command', () => {
         })
         .parse('--numbers 0 1 2');
     });
+
+    it('unquotes string-mode positional and option values', () => {
+      const argv = yargs()
+        .command('echo [pos]')
+        .parse('echo "a b" --opt "a b"');
+      argv.pos.should.equal('a b');
+      argv.opt.should.equal('a b');
+    });
+
+    it('unquotes single-quoted string-mode positional values', () => {
+      const argv = yargs()
+        .command('echo [pos]')
+        .parse("echo 'x y'");
+      argv.pos.should.equal('x y');
+    });
+
+    it('leaves quotes untouched when args are provided as an array', () => {
+      const argv = yargs()
+        .command('echo [pos]')
+        .parse(['echo', '"a b"', '--opt', '"a b"']);
+      argv.pos.should.equal('"a b"');
+      argv.opt.should.equal('"a b"');
+    });
+
+    it("unquotes string-mode tokens found after '--'", () => {
+      const argv = yargs()
+        .command('echo [pos]')
+        .parse('echo -- "c d"');
+      argv._.should.include('c d');
+    });
   });
 
   describe('variadic', () => {
