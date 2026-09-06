@@ -61,6 +61,7 @@ import {
 import {isPromise} from './utils/is-promise.js';
 import {maybeAsyncResult} from './utils/maybe-async-result.js';
 import setBlocking from './utils/set-blocking.js';
+import {stripMatchingQuotes} from './utils/strip-matching-quotes.js';
 
 export function YargsFactory(_shim: PlatformShim) {
   return (
@@ -1996,6 +1997,17 @@ export class YargsInstance {
         configuration: {'parse-positional-numbers': false, ...config},
       })
     ) as DetailedArguments;
+
+    if (typeof args === 'string') {
+      parsed.argv._ = parsed.argv._.map(token =>
+        typeof token === 'string' ? stripMatchingQuotes(token) : token
+      );
+      if (Array.isArray(parsed.argv['--'])) {
+        parsed.argv['--'] = parsed.argv['--'].map(token =>
+          typeof token === 'string' ? stripMatchingQuotes(token) : token
+        );
+      }
+    }
 
     const argv: Arguments = Object.assign(
       parsed.argv,
