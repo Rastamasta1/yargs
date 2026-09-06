@@ -1385,6 +1385,8 @@ Valid `opt` keys include:
 
  Returns the `argv` object. `args` may either be a pre-processed argv array, or a raw argument string.
 
+ When `args` is a single string, yargs tokenises it and removes one matching pair of surrounding quotes from option values and positional values alike; when `args` is an array, values are used exactly as given.
+
 A `context` object can optionally be given as the second argument to `parse()`, providing a
 useful mechanism for passing state information to commands:
 
