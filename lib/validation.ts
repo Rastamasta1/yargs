@@ -180,9 +180,10 @@ export function validation(
     }
 
     // https://github.com/yargs/yargs/issues/1861
+    // https://github.com/yargs/yargs/issues/1076: the expected count computed below also accounts for declared positionals, not only yargs.demand(number).
     if (checkPositionals) {
       // Check for non-option args that are not in currentContext.commands
-      // Take into account expected args from commands and yargs.demand(number)
+      // Take into account expected args from commands, declared positionals, and yargs.demand(number)
       const demandedCommands = yargs.getDemandedCommands();
       const maxNonOptDemanded = demandedCommands._?.max || 0;
       // https://github.com/yargs/yargs/issues/1076: once a command has
