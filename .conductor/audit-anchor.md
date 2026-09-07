@@ -1,34 +1,34 @@
-# Conductor audit-chain anchor
+# Atrytone audit-chain anchor
 
-Conductor keeps an append-only, hash-chained audit log of every governed
+Atrytone keeps an append-only, hash-chained audit log of every governed
 action it takes. This file publishes that chain's head into this
-repository — somewhere Conductor does not control — so that the record can
-be checked by someone who does not have to take Conductor's word for it.
+repository — somewhere Atrytone does not control — so that the record can
+be checked by someone who does not have to take Atrytone's word for it.
 
-It is written by Conductor's broker, not by the agent that produced the
+It is written by Atrytone's broker, not by the agent that produced the
 change in this push. The agent cannot omit it, and cannot write it: the
 path is reserved, and a push whose payload contains it is refused.
 
 ## The anchor
 
 ```
-chain head sequence      28166
-chain head hash          3357398e960a79898ec5f4ea8a229a207de889ef9fa468d3c8a6fe358e5b2dee
-head row written at      2026-09-06T09:53:36.446Z
+chain head sequence      28841
+chain head hash          d2dff8447cadb620b9124b9fe628a2a02339e8a2e586189daf72f14dd9953074
+head row written at      2026-09-07T10:53:30.751Z
 chain genesis at         2026-06-26T10:52:06.958Z
-published at             2026-09-06T09:53:39.000Z
+published at             2026-09-07T10:53:33.863Z
 published into           Rastamasta1/yargs
-carried by intent        cb6bbffc-f6ea-4108-80ff-9ca136d0c1e7
-cockpit build            440887d
+carried by intent        96fcd375-6552-4841-abf6-9418421d1046
+cockpit build            a854323
 ```
 
 ## The previous anchor, so a gap is visible
 
 ```
-previous head sequence   28011
-previous head hash       0b05c31be2cdae0808a87a0ff487cfba5424210ef139777e9d6b4986dfce9b29
-previous published at    2026-09-06T09:38:53.168Z
-audit rows added since   155
+previous head sequence   28166
+previous head hash       3357398e960a79898ec5f4ea8a229a207de889ef9fa468d3c8a6fe358e5b2dee
+previous published at    2026-09-06T09:53:41.350Z
+audit rows added since   675
 ```
 
 Consecutive anchors form their own chain inside this repository. If the
@@ -38,15 +38,15 @@ anchor is in this file's git history — `git log .conductor/audit-anchor.md`.
 
 ## What this proves
 
-  - Every audit row up to sequence 28166 hashes, in order, to the head
+  - Every audit row up to sequence 28841 hashes, in order, to the head
     hash above. Each row's hash covers the previous row's hash, so the
     sequence cannot be reordered, and no row can be removed from the middle
     without the following hashes disagreeing.
   - This file is committed to this repository, so the hash above existed at
     this commit's date — a date recorded in this repository's history, which
-    Conductor does not administer and cannot rewrite.
-  - Therefore any later edit to any audit row at or below sequence 28166
-    makes Conductor's recomputed head disagree with the hash committed here,
+    Atrytone does not administer and cannot rewrite.
+  - Therefore any later edit to any audit row at or below sequence 28841
+    makes Atrytone's recomputed head disagree with the hash committed here,
     and the disagreement is detectable by anyone holding this file.
 
 ## What this does NOT prove
@@ -57,13 +57,13 @@ anchor is in this file's git history — `git log .conductor/audit-anchor.md`.
   - It does not prove COMPLETENESS. A chain shows that nothing recorded was
     changed. It cannot show that everything that happened was recorded.
   - It does not reveal or prove the CONTENT of any row. The hash commits to
-    the whole ledger; reading any part of it still requires Conductor.
-  - The sequence number counts audit rows across EVERY Conductor client, not
+    the whole ledger; reading any part of it still requires Atrytone.
+  - The sequence number counts audit rows across EVERY Atrytone client, not
     only this one. It therefore discloses how many audit rows exist in total,
     and nothing about whose they are.
-  - It anchors MOMENTS, NOT TIME. A head is published when Conductor's broker
+  - It anchors MOMENTS, NOT TIME. A head is published when Atrytone's broker
     pushes to this repository, and at no other time. Between two anchors
-    Conductor was running and was not anchored here. Conductor also has a
+    Atrytone was running and was not anchored here. Atrytone also has a
     fallback path in which its worker pushes directly, without the broker;
     such a push carries no anchor at all. Do not read the presence of this
     file on some commits as a guarantee that every commit has one.
@@ -71,9 +71,9 @@ anchor is in this file's git history — `git log .conductor/audit-anchor.md`.
 ## How to check it
 
   1. Note the head hash and sequence above, and this commit's date.
-  2. Ask Conductor to recompute the chain over the same range. Its
+  2. Ask Atrytone to recompute the chain over the same range. Its
      `verify_audit_chain()` walks every row in sequence order, recomputing
      each row's hash from the row's own contents and the previous hash.
-  3. The head it produces for sequence 28166 must equal the hash above.
+  3. The head it produces for sequence 28841 must equal the hash above.
      If it does not, something at or below that sequence changed after this
      commit was made.

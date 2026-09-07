@@ -185,7 +185,20 @@ export function validation(
       // Take into account expected args from commands and yargs.demand(number)
       const demandedCommands = yargs.getDemandedCommands();
       const maxNonOptDemanded = demandedCommands._?.max || 0;
-      const expected = currentContext.commands.length + maxNonOptDemanded;
+      // https://github.com/yargs/yargs/issues/1076: once a command has
+      // actually run, populatePositionals() has already spliced every
+      // positional slot the command declares (via <a>/[b] placeholders or
+      // .positional()) out of argv._, leaving only genuine extras appended
+      // after currentContext.commands. In that case the number of slots
+      // the command declares -- not the unrelated global demandCommand()
+      // max, which defaults to Infinity -- is what bounds argv._, or
+      // positionals supplied beyond what was declared are silently
+      // accepted whenever a finite max was never set via demandCommand().
+      const isCommandContext =
+        currentContext.commands.length > 0 || isDefaultCommand;
+      const expected = isCommandContext
+        ? currentContext.commands.length
+        : currentContext.commands.length + maxNonOptDemanded;
       if (expected < argv._.length) {
         argv._.slice(expected).forEach(key => {
           key = String(key);

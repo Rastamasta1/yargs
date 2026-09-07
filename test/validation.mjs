@@ -1142,6 +1142,19 @@ describe('validation tests', () => {
           'cmd --opt1 --opt2 --opt3 foo bar baz --opt4 --opt5 --opt6 3 --opt7 cat'
         );
     });
+
+    it('fails in strict mode when more positionals are supplied than declared (#1076)', done => {
+      yargs(['kangaroo', 'jumping', 'wombat'])
+        .command('kangaroo <status>', 'kangaroo handlers')
+        .command('wombat', 'wombat burrows')
+        .demandCommand(1)
+        .strict()
+        .fail(msg => {
+          msg.should.match(/Unknown argument/);
+          return done();
+        })
+        .parse();
+    });
   });
 
   describe('demandOption', () => {
