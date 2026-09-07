@@ -1155,6 +1155,18 @@ describe('validation tests', () => {
         })
         .parse();
     });
+
+    it('does not fail in strict mode when exactly the declared positionals are supplied', () => {
+      const argv = yargs(['kangaroo', 'jumping'])
+        .command('kangaroo <status>', 'kangaroo handlers')
+        .strict()
+        .fail(msg => {
+          expect.fail();
+        })
+        .parse();
+      argv._.should.deep.equal(['kangaroo']);
+      argv.status.should.equal('jumping');
+    });
   });
 
   describe('demandOption', () => {
@@ -1234,6 +1246,26 @@ describe('validation tests', () => {
         )
         .fail(msg => {
           msg.should.equal('totes too many, got 3 totes expected 2');
+          return done();
+        })
+        .parse();
+    });
+
+    // Guards the #1076 fix: demandCommand's custom too-many message must
+    // still win over the generic strict-mode "Unknown argument" message
+    // when both are configured for the same over-supplied positionals.
+    it('still reports the demandCommand custom too-many message in strict mode', done => {
+      yargs('-a 10 marsupial mammal bro')
+        .strict()
+        .demandCommand(
+          1,
+          2,
+          'totes too few, got $0 totes expected $1',
+          'totes too many, got $0 totes expected $1'
+        )
+        .fail(msg => {
+          msg.should.equal('totes too many, got 3 totes expected 2');
+          msg.should.not.match(/Unknown argument/);
           return done();
         })
         .parse();
